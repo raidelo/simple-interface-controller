@@ -33,7 +33,7 @@ def interface(name_of_interface:str, enabled:int|None):
 
     if r.returncode == 0:
         if enabled in (1, 0):
-            print("{} is {}\n".format(name_of_interface, "up!" if enabled else "down!"))
+            print("{} is {}".format(name_of_interface, "up!" if enabled else "down!"))
         else:
             print(r.stdout)
     else:
@@ -47,17 +47,28 @@ def interface(name_of_interface:str, enabled:int|None):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("enable_disable", type=int, nargs="?", default=None)
+    meg = parser.add_mutually_exclusive_group()
+    meg.add_argument("enable_disable", type=int, nargs="?", default=None)
+    meg.add_argument("-r", "--restart", action="store_true", dest="restart",
+                     help="actúa como flag, si se activa, se reiniciará la interfaz elegida")
     parser.add_argument("-i", "--interface", type=str, nargs="?", default=DEFAULT_INTERFACE,
                         help="la interfaz a elegir: por defecto: ({})".format(DEFAULT_INTERFACE))
     args = parser.parse_args()
 
-    if args.enable_disable != None and not isinstance(args.enable_disable, int) or isinstance(args.enable_disable, int) and args.enable_disable > 1:
+    if args.restart:
+        print("Restarting {} ...".format(args.interface))
+        r1 = interface(args.interface,
+                  0)
+        r2 = interface(args.interface,
+                  1)
+        print()
+        exit(r1 or r2)
+    elif args.enable_disable != None and not isinstance(args.enable_disable, int) or isinstance(args.enable_disable, int) and args.enable_disable > 1:
         parser.error("argument enable_disable: must be 1 or 0")            
 
-    exit(
-        interface(
+    r = interface(
             name_of_interface=args.interface,
             enabled=args.enable_disable,
             )
-        )
+    print()
+    exit(r)
