@@ -1,5 +1,7 @@
-from subprocess import run, PIPE
 from argparse import ArgumentParser
+from colorama import Fore
+from platform import system
+from subprocess import run, PIPE
 
 DEFAULT_INTERFACE = "Ethernet"
 
@@ -11,8 +13,7 @@ def interface(name_of_interface:str, enabled:int|None):
     """
     if enabled not in (1, 0, None):
         raise ValueError("values of parameter enabled must be either 1 or 0 integers or None")
-    from platform import system as p_system
-    p = p_system()
+    p = system()
     if p == "Windows":
         if isinstance(enabled, int):
             cmd = "netsh interface set interface {} {}".format(name_of_interface, "admin=ENABLED" if enabled else "admin=DISABLED")
@@ -33,7 +34,7 @@ def interface(name_of_interface:str, enabled:int|None):
 
     if r.returncode == 0:
         if enabled in (1, 0):
-            print("{} is {}".format(name_of_interface, "up!" if enabled else "down!"))
+            print("'{}{}{}' is {}".format(Fore.GREEN if enabled else Fore.RED, name_of_interface, Fore.RESET, "up!" if enabled else "down!"))
         else:
             print(r.stdout)
     else:
@@ -56,7 +57,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.restart:
-        print("Restarting {} ...".format(args.interface))
+        print("Restarting '{}' ...".format(args.interface))
         r1 = interface(args.interface,
                   0)
         r2 = interface(args.interface,
